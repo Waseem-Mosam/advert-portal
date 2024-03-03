@@ -1,0 +1,1309 @@
+{
+    "openapi": "3.0.1",
+    "info": {
+        "title": "CSI 345",
+        "description": "",
+        "version": "1.0.0"
+    },
+    "tags": [],
+    "paths": {
+        "/staff/{staff_id}/adverts": {
+            "get": {
+                "summary": "Adverts by Staff ID",
+                "deprecated": false,
+                "description": "Retrieves a list of adverts that have been posted by the staff member",
+                "tags": [],
+                "parameters": [
+                    {
+                        "name": "staff_id",
+                        "in": "path",
+                        "description": "",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "id": {
+                                            "type": "string",
+                                            "description": "Staff ID number",
+                                            "examples": [
+                                                "202505567"
+                                            ]
+                                        },
+                                        "adverts": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "advert_id": {
+                                                        "type": "string",
+                                                        "examples": [
+                                                            "123456"
+                                                        ]
+                                                    },
+                                                    "price": {
+                                                        "type": "string",
+                                                        "examples": [
+                                                            "600"
+                                                        ]
+                                                    },
+                                                    "tag": {
+                                                        "type": "string",
+                                                        "examples": [
+                                                            "Not Sold"
+                                                        ]
+                                                    },
+                                                    "title": {
+                                                        "type": "string",
+                                                        "examples": [
+                                                            "TV Soundbar"
+                                                        ]
+                                                    },
+                                                    "status": {
+                                                        "type": "string",
+                                                        "description": "status",
+                                                        "examples": [
+                                                            "Approved"
+                                                        ]
+                                                    },
+                                                    "image": {
+                                                        "type": "string",
+                                                        "examples": [
+                                                            "Speaker Image"
+                                                        ]
+                                                    }
+                                                },
+                                                "title": "ad",
+                                                "required": [
+                                                    "advert_id",
+                                                    "price",
+                                                    "tag",
+                                                    "title",
+                                                    "status",
+                                                    "image"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "id",
+                                        "adverts"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "title": "",
+                                    "type": "object",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "description": "status",
+                                            "examples": [
+                                                "Failed"
+                                            ]
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "examples": [
+                                                "The request could not be understood by the server"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "status",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Record Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "title": "",
+                                    "type": "object",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "description": "status",
+                                            "examples": [
+                                                "Failed"
+                                            ]
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "description": "Staff member not found",
+                                            "examples": [
+                                                "Record not found"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "status",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": []
+            }
+        },
+        "/adverts": {
+            "get": {
+                "summary": "Adverts",
+                "deprecated": false,
+                "description": "Get all adverts. Filter can be applied to get specific types of adverts.",
+                "tags": [],
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Pending | Rejected | Accepted",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "tag",
+                        "in": "query",
+                        "description": "Filter adverts by tag",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "adverts": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "advert_id": {
+                                                        "type": "string",
+                                                        "examples": [
+                                                            "123456"
+                                                        ]
+                                                    },
+                                                    "title": {
+                                                        "type": "string",
+                                                        "examples": [
+                                                            "TV"
+                                                        ]
+                                                    },
+                                                    "description": {
+                                                        "type": "string",
+                                                        "examples": [
+                                                            "Samsung TV"
+                                                        ]
+                                                    },
+                                                    "status": {
+                                                        "type": "string",
+                                                        "examples": [
+                                                            "Not Sold"
+                                                        ]
+                                                    },
+                                                    "price": {
+                                                        "type": "string",
+                                                        "examples": [
+                                                            "4000"
+                                                        ]
+                                                    },
+                                                    "image": {
+                                                        "type": "string",
+                                                        "examples": [
+                                                            "TV Image"
+                                                        ]
+                                                    },
+                                                    "contact_info": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "email": {
+                                                                "type": "string",
+                                                                "examples": [
+                                                                    "test@email.com"
+                                                                ]
+                                                            },
+                                                            "phone_number": {
+                                                                "type": "string",
+                                                                "examples": [
+                                                                    "71234567"
+                                                                ]
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "email",
+                                                            "phone_number"
+                                                        ]
+                                                    }
+                                                },
+                                                "required": [
+                                                    "advert_id",
+                                                    "title",
+                                                    "description",
+                                                    "status",
+                                                    "price",
+                                                    "image",
+                                                    "contact_info"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "adverts"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apikey-header-{% faker random.alphaNumeric|sha('sha224') %}": []
+                    }
+                ]
+            },
+            "post": {
+                "summary": "Create Advert",
+                "deprecated": false,
+                "description": "Creates an advert",
+                "tags": [],
+                "parameters": [
+                    {
+                        "name": "x-api-key",
+                        "in": "header",
+                        "description": "Authorization key",
+                        "required": false,
+                        "example": "",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "examples": [
+                                            "Car"
+                                        ]
+                                    },
+                                    "price": {
+                                        "type": "number",
+                                        "examples": [
+                                            30000
+                                        ]
+                                    },
+                                    "tag": {
+                                        "type": "string",
+                                        "examples": [
+                                            "Not Sold"
+                                        ]
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "examples": [
+                                            "Honda Fit"
+                                        ]
+                                    },
+                                    "image": {
+                                        "type": "string",
+                                        "examples": [
+                                            "Car Image"
+                                        ]
+                                    },
+                                    "user_id": {
+                                        "type": "string",
+                                        "examples": [
+                                            "123456789"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "title",
+                                    "price",
+                                    "tag",
+                                    "description",
+                                    "image",
+                                    "user_id"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "description": "status",
+                                            "examples": [
+                                                "Not Approved"
+                                            ]
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "examples": [
+                                                "Your advert has been created"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "status",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "title": "",
+                                    "type": "object",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "description": "status",
+                                            "examples": [
+                                                "Failed"
+                                            ]
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "examples": [
+                                                "The request could not be understood by the server"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "status",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "title": "",
+                                    "type": "object",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "description": "status",
+                                            "examples": [
+                                                "Failed"
+                                            ]
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "examples": [
+                                                "The advert could not be created"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "status",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": []
+            }
+        },
+        "/staff/adverts": {
+            "get": {
+                "summary": "All adverts",
+                "deprecated": false,
+                "description": "Retrieves a list of all adverts that have been approved.",
+                "tags": [],
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "adverts": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "seller_name": {
+                                                        "type": "string",
+                                                        "examples": [
+                                                            "John Stones"
+                                                        ]
+                                                    },
+                                                    "contact_info": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "email": {
+                                                                "type": "string",
+                                                                "examples": [
+                                                                    "john@email.com"
+                                                                ]
+                                                            },
+                                                            "phone_number": {
+                                                                "type": "string",
+                                                                "examples": [
+                                                                    "71234567"
+                                                                ]
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "email",
+                                                            "phone_number"
+                                                        ]
+                                                    },
+                                                    "advert_id": {
+                                                        "type": "string",
+                                                        "examples": [
+                                                            "123456"
+                                                        ]
+                                                    },
+                                                    "title": {
+                                                        "type": "string",
+                                                        "examples": [
+                                                            "Car"
+                                                        ]
+                                                    },
+                                                    "price": {
+                                                        "type": "string",
+                                                        "examples": [
+                                                            "35000"
+                                                        ]
+                                                    },
+                                                    "status": {
+                                                        "type": "string",
+                                                        "examples": [
+                                                            "Approved"
+                                                        ]
+                                                    },
+                                                    "image": {
+                                                        "type": "string",
+                                                        "examples": [
+                                                            "Car Image"
+                                                        ]
+                                                    },
+                                                    "description": {
+                                                        "type": "string",
+                                                        "examples": [
+                                                            "Toyota Vitz"
+                                                        ]
+                                                    },
+                                                    "tag": {
+                                                        "type": "string",
+                                                        "examples": [
+                                                            "Not Sold"
+                                                        ]
+                                                    }
+                                                },
+                                                "required": [
+                                                    "seller_name",
+                                                    "contact_info",
+                                                    "advert_id",
+                                                    "title",
+                                                    "price",
+                                                    "status",
+                                                    "image",
+                                                    "description",
+                                                    "tag"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "adverts"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": []
+            }
+        },
+        "/login": {
+            "post": {
+                "summary": "Authenticate user",
+                "deprecated": false,
+                "description": "",
+                "tags": [],
+                "parameters": [],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "examples": [
+                                            "username"
+                                        ]
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "examples": [
+                                            "password"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "email",
+                                    "password"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "description": "status",
+                                            "examples": [
+                                                "Success"
+                                            ]
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "description": "No user with matching credentials",
+                                            "examples": [
+                                                "You have been authenticated"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "status",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "title": "",
+                                    "type": "object",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "examples": [
+                                                "Failed"
+                                            ]
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "examples": [
+                                                "You have not been authenticated"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "status",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": []
+            }
+        },
+        "/reports": {
+            "get": {
+                "summary": "Report",
+                "deprecated": false,
+                "description": "Get report data such as stats",
+                "tags": [],
+                "parameters": [
+                    {
+                        "name": "report_type",
+                        "in": "query",
+                        "description": "Type of report desired",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {}
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "title": "",
+                                    "type": "object",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "description": "status",
+                                            "examples": [
+                                                "Failed"
+                                            ]
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "examples": [
+                                                "Report could not be generated"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "status",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apikey-header-{% faker random.alphaNumeric|sha('sha224') %}": []
+                    }
+                ]
+            }
+        },
+        "/adverts/{advert_id}": {
+            "put": {
+                "summary": "Update advert",
+                "deprecated": false,
+                "description": "Allows the user to update  a specific advert that they have created.",
+                "tags": [],
+                "parameters": [
+                    {
+                        "name": "advert_id",
+                        "in": "path",
+                        "description": "",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "x-api-key",
+                        "in": "header",
+                        "description": "Authorisation key",
+                        "required": false,
+                        "example": "",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "description": "status",
+                                            "examples": [
+                                                "Success"
+                                            ]
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "examples": [
+                                                "Your advert has been updated"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "status",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "title": "",
+                                    "type": "object",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "description": "status",
+                                            "examples": [
+                                                "Failed"
+                                            ]
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "examples": [
+                                                "The request could not be understood by the server"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "status",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "title": "",
+                                    "type": "object",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "description": "status",
+                                            "examples": [
+                                                "Failed"
+                                            ]
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "examples": [
+                                                "This action is forbidden"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "status",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Record Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "title": "",
+                                    "type": "object",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "description": "status",
+                                            "examples": [
+                                                "Failed"
+                                            ]
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "description": "Ad not found",
+                                            "examples": [
+                                                "The record could not be found"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "status",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": []
+            },
+            "post": {
+                "summary": "Approve or Reject advert",
+                "deprecated": false,
+                "description": "",
+                "tags": [],
+                "parameters": [
+                    {
+                        "name": "advert_id",
+                        "in": "path",
+                        "description": "",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "New status of the advert",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "description": "status",
+                                            "examples": [
+                                                "Approved"
+                                            ]
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "examples": [
+                                                "You have approved this advert"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "status",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "title": "",
+                                    "type": "object",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "description": "status",
+                                            "examples": [
+                                                "Failed"
+                                            ]
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "examples": [
+                                                "The request could not be understood by the server"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "status",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "title": "",
+                                    "type": "object",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "description": "status",
+                                            "examples": [
+                                                "Failed"
+                                            ]
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "examples": [
+                                                "This action is forbidden"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "status",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Record Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "title": "",
+                                    "type": "object",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "description": "status",
+                                            "examples": [
+                                                "Failed"
+                                            ]
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "examples": [
+                                                "The record could not be found"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "status",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apikey-header-{% faker random.alphaNumeric|sha('sha224') %}": []
+                    }
+                ]
+            },
+            "delete": {
+                "summary": "Advert",
+                "deprecated": false,
+                "description": "Allows a user to delete an advert that they have created.",
+                "tags": [],
+                "parameters": [
+                    {
+                        "name": "advert_id",
+                        "in": "path",
+                        "description": "",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "x-api-key",
+                        "in": "header",
+                        "description": "Authorisation key",
+                        "required": false,
+                        "example": "",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "description": "status",
+                                            "examples": [
+                                                "Not Approved"
+                                            ]
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "description": "message",
+                                            "examples": [
+                                                "Your advert has been deleted"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "status",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "title": "",
+                                    "type": "object",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "description": "status",
+                                            "examples": [
+                                                "Failed"
+                                            ]
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "examples": [
+                                                "The request could not be understood by the server"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "status",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "title": "",
+                                    "type": "object",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "description": "status",
+                                            "examples": [
+                                                "Failed"
+                                            ]
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "examples": [
+                                                "This action is forbidden"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "status",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Record Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "title": "",
+                                    "type": "object",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "description": "status",
+                                            "examples": [
+                                                "Failed"
+                                            ]
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "description": "Ad not found",
+                                            "examples": [
+                                                "The record could not be found"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "status",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": []
+            },
+            "get": {
+                "summary": "Get Advert",
+                "deprecated": false,
+                "description": "Get a specific advert",
+                "tags": [],
+                "parameters": [
+                    {
+                        "name": "advert_id",
+                        "in": "path",
+                        "description": "",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "id": {
+                                            "type": "string",
+                                            "description": "ID"
+                                        },
+                                        "title": {
+                                            "type": "string",
+                                            "description": "Advert title"
+                                        },
+                                        "tag": {
+                                            "type": "string"
+                                        },
+                                        "price": {
+                                            "type": "string"
+                                        },
+                                        "description": {
+                                            "type": "string"
+                                        },
+                                        "image": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "id",
+                                        "title",
+                                        "tag",
+                                        "price",
+                                        "description",
+                                        "image"
+                                    ]
+                                },
+                                "examples": {
+                                    "1": {
+                                        "summary": "Success",
+                                        "value": {
+                                            "id": "1d52a58",
+                                            "title": "1999 Toyota Corola",
+                                            "tag": "Available",
+                                            "price": "10000",
+                                            "description": "Gearbox needs to be replaced. Price negotiable.",
+                                            "image": "https://image.location/image.jpg"
+                                        }
+                                    },
+                                    "2": {
+                                        "summary": "Exception",
+                                        "value": {
+                                            "status": 404,
+                                            "message": "Advert not found."
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Record Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "title": "",
+                                    "type": "object",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "status",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": []
+            }
+        }
+    },
+    "components": {
+        "schemas": {},
+        "securitySchemes": {
+            "apikey-header-{% faker random.alphaNumeric|sha('sha224') %}": {
+                "type": "apiKey",
+                "in": "header",
+                "name": "{% faker random.alphaNumeric|sha('sha224') %}"
+            }
+        }
+    },
+    "servers": []
+}
