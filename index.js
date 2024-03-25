@@ -1,6 +1,12 @@
 const express = require("express");
 const oracledb = require("oracledb");
 
+const config = {
+    user: "mhu04972",
+    password: "mhu04972",
+    connectString: "10.0.18.2:1521/orcl"
+}
+
 const app = express();
 app.use(express.json());
 
@@ -42,3 +48,55 @@ app.get("/api/private-scoped", jwtCheck, checkScopes, function (req, res) {
 			"Hello from a private endpoint! You need to be authenticated and have a scope of read:messages to see this.",
 	});
 });
+
+
+/* Staff Member endpoints */
+
+// Update Advert
+app.put('/adverts/:id', async (req, res) => {
+	let conn;
+
+	try{
+		conn = await oracledb.getConnection(config);
+
+		const { id } = req.params;
+		const { title, description, price } = req.body;
+
+		const result = await conn.execute(
+			'UPDATE ADVERTS SET TITLE = :title, DESCRIPTION = :description, PRICE = :price WHERE ID = :id',
+			[title, description, price, id]
+		);
+
+		res.send(result.rows);
+
+	}catch(err){
+		console.error(err);
+	}finally{
+		if(conn){
+			await conn.close();
+		}
+	}
+})
+
+
+/* Administrator endpoints */
+
+// Get Adverts
+app.get('/aderts', async (req, res) => {
+	let conn;
+
+    try{
+        conn = await oracledb.getConnection(config);
+
+        const result = await conn.execute('SELECT * FROM ADVERTS');
+
+        res.send(result.rows);
+
+    }catch(err){
+        console.error(err);
+    }finally{
+        if(conn){
+            await conn.close();
+        }
+    }
+})
