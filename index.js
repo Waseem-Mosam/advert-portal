@@ -175,19 +175,19 @@ app.post("/login", async (req, res) => {
 			[email, password]
 		);
 
-		if(result.rows.length > 0){
+		if(await result.rows[0]){
 			try {
-				request(options, async function (error, response, body) {
+				request(options, function (error, response, body) {
 					if (error) throw new Error(error);
-	
-					cred = await body
+					res.json(body)
 				});
 			} catch (err) {
 				console.error(err);
 			}
+		}else{
+			res.status(401).json({status:401,message:"User does not exist."});
 		}
 
-		res.json(cred);
 	} catch (err) {
 		console.error(err);
 	} finally {
