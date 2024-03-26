@@ -53,21 +53,23 @@ app.get("/api/private-scoped", jwtCheck, checkScopes, function (req, res) {
 /* Staff Member endpoints */
 
 // Update Advert
-app.put('/adverts/:id', async (req, res) => {
+app.put('/adverts', async (req, res) => {
 	let conn;
+
+    
 
 	try{
 		conn = await oracledb.getConnection(config);
 
-		const { id } = req.params;
+		const advert_id = req.query.id;
 		const { title, description, price } = req.body;
 
 		const result = await conn.execute(
-			'UPDATE ADVERTS SET TITLE = :title, DESCRIPTION = :description, PRICE = :price WHERE ID = :id',
-			[title, description, price, id]
+			'UPDATE CSI345_ADVERT SET TITLE = :title, DESCRIPTION = :description, PRICE = :price WHERE ADVERTID = :advert_id',
+			[title, description, price, advert_id], { autoCommit: true }
 		);
 
-		res.send(result.rows);
+		res.sendStatus(201);
 
 	}catch(err){
 		console.error(err);
