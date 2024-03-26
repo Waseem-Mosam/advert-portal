@@ -84,13 +84,13 @@ app.put('/adverts', async (req, res) => {
 /* Administrator endpoints */
 
 // Get Adverts
-app.get('/aderts', async (req, res) => {
+app.get('/adverts', async (req, res) => {
 	let conn;
 
     try{
         conn = await oracledb.getConnection(config);
 
-        const result = await conn.execute('SELECT * FROM ADVERTS');
+        const result = await conn.execute('SELECT * FROM CSI345_ADVERT');
 
         res.send(result.rows);
 
