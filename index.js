@@ -102,3 +102,97 @@ app.get('/adverts', async (req, res) => {
         }
     }
 })
+
+
+// approve advert
+app.post("/adverts/:advertId", async (req, res) => {
+	let conn;
+	let cred;
+	try {
+		conn = await oracledb.getConnection(config);
+
+		const { advertId } = req.params;
+
+		cred = await conn.execute(
+			"UPDATE CSI345_ADVERT SET STATUS = 'Approved' WHERE ADVERTID = :advertId",
+			[advertId],
+			{ autoCommit: true }
+		);
+
+		res.json(cred);
+	} catch (err) {
+		console.error(err);
+	} finally {
+		if (conn) {
+			await conn.close();
+		}
+	}
+});
+
+// Get Reports
+app.get("/reports", async (req, res) => {
+	let conn;
+	const { report_type } = req.query;
+	try {
+		conn = await oracledb.getConnection(config);
+		let result
+		if (report_type == "sold"){
+			result = await conn.execute("SELECT * FROM CSI345_ADVERT WHERE TAG = 'Sold'");
+		}
+
+		else if(report_type == "available"){
+			result = await conn.execute("SELECT * FROM CSI345_ADVERT WHERE TAG = 'Available'");
+		}
+
+		res.send(result.rows);
+	} catch (err) {
+		console.error(err);
+	} finally {
+		if (conn) {
+			await conn.close();
+		}
+	}
+});
+
+// login with Auth0
+app.post("/login", async (req, res) => {
+	let conn;
+	let cred;
+	var options = {
+		method: "POST",
+		url: "https://dev-yxcvikhgd4lanrwd.us.auth0.com/oauth/token",
+		headers: { "content-type": "application/json" },
+		body: '{"client_id":"lB8QxNyb5zSLkbZTj9fGDvos16f9QQh4","client_secret":"hqvFHzG-HJn6Q_OI-mQE_oiWcAQnrwXPI-bBMY8qjLseN9oaj-lL50abxyb8ntrA","audience":"http://localhost:3000","grant_type":"client_credentials"}',
+	};
+
+	try {
+		conn = await oracledb.getConnection(config);
+
+		const { email, password } = req.body;
+
+		const result = await conn.execute(
+			"SELECT * FROM CSI345_USER WHERE EMAIL = :email AND PASSWORD = :password",
+			[email, password]
+		);
+
+		if(result.rows.length > 0){
+			try {
+				request(options, async function (error, response, body) {
+					if (error) throw new Error(error);
+	
+					cred = await body
+				});
+			} catch (err) {
+				console.error(err);
+			}
+		}
+
+		res.json(cred);
+	} catch (err) {
+		console.error(err);
+	} finally {
+		if (conn) {
+			await conn.close();
+		}
+	}
+});
