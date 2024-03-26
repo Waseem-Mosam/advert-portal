@@ -2,10 +2,10 @@ const express = require("express");
 const oracledb = require("oracledb");
 
 const config = {
-    user: "mhu04972",
-    password: "mhu04972",
-    connectString: "10.0.18.2:1521/orcl"
-}
+	user: "mhu04972",
+	password: "mhu04972",
+	connectString: "10.0.18.2:1521/orcl",
+};
 
 const app = express();
 app.use(express.json());
@@ -49,54 +49,134 @@ app.get("/api/private-scoped", jwtCheck, checkScopes, function (req, res) {
 	});
 });
 
-
 /* Staff Member endpoints */
 
 // Update Advert
-app.put('/adverts/:id', async (req, res) => {
+app.put("/adverts/:id", async (req, res) => {
 	let conn;
 
-	try{
+	try {
 		conn = await oracledb.getConnection(config);
 
 		const { id } = req.params;
 		const { title, description, price } = req.body;
 
 		const result = await conn.execute(
-			'UPDATE ADVERTS SET TITLE = :title, DESCRIPTION = :description, PRICE = :price WHERE ID = :id',
+			"UPDATE ADVERTS SET TITLE = :title, DESCRIPTION = :description, PRICE = :price WHERE ID = :id",
 			[title, description, price, id]
 		);
 
 		res.send(result.rows);
-
-	}catch(err){
+	} catch (err) {
 		console.error(err);
-	}finally{
-		if(conn){
+	} finally {
+		if (conn) {
 			await conn.close();
 		}
 	}
-})
-
+});
 
 /* Administrator endpoints */
 
 // Get Adverts
-app.get('/aderts', async (req, res) => {
+app.get("/aderts", async (req, res) => {
 	let conn;
 
-    try{
-        conn = await oracledb.getConnection(config);
+	try {
+		conn = await oracledb.getConnection(config);
 
-        const result = await conn.execute('SELECT * FROM ADVERTS');
+		const result = await conn.execute("SELECT * FROM ADVERTS");
 
-        res.send(result.rows);
+		res.send(result.rows);
+	} catch (err) {
+		console.error(err);
+	} finally {
+		if (conn) {
+			await conn.close();
+		}
+	}
+});
 
-    }catch(err){
-        console.error(err);
-    }finally{
-        if(conn){
-            await conn.close();
-        }
-    }
-})
+// approve advert
+app.post("/adverts/:advertId", jwtCheck, async (req, res) => {
+	let conn;
+	let cred;
+	try {
+		conn = await oracledb.getConnection(config);
+
+		const { advertId } = req.params;
+
+		cred = await conn.execute(
+			"UPDATE ADVERTS SET CSI345_ADVERT = Approved WHERE ID = :advertId",
+			[advertId],
+			{ autoCommit: true }
+		);
+
+		res.json(cred);
+	} catch (err) {
+		console.error(err);
+	} finally {
+		if (conn) {
+			await conn.close();
+		}
+	}
+});
+
+// Get Reports
+app.get("/reports", jwtCheck, async (req, res) => {
+	let conn;
+	const { report_type } = req.query;
+	try {
+		conn = await oracledb.getConnection(config);
+
+		const result = await conn.execute("SELECT * FROM REPORTS");
+
+		res.send(result.rows);
+	} catch (err) {
+		console.error(err);
+	} finally {
+		if (conn) {
+			await conn.close();
+		}
+	}
+});
+
+// login with Auth0
+app.post("/login", async (req, res) => {
+	let conn;
+	var options = {
+		method: "POST",
+		url: "https://dev-yxcvikhgd4lanrwd.us.auth0.com/oauth/token",
+		headers: { "content-type": "application/json" },
+		body: '{"client_id":"lB8QxNyb5zSLkbZTj9fGDvos16f9QQh4","client_secret":"hqvFHzG-HJn6Q_OI-mQE_oiWcAQnrwXPI-bBMY8qjLseN9oaj-lL50abxyb8ntrA","audience":"http://localhost:3000","grant_type":"client_credentials"}',
+	};
+
+	try {
+		conn = await oracledb.getConnection(config);
+
+		const { email, password } = req.body;
+
+		const result = await conn.execute(
+			"SELECT * FROM CSI345_USERS WHERE EMAIL = :email AND PASSWORD = :password",
+			[email, password]
+		);
+
+		try {
+			request(options, function (error, response, body) {
+				if (error) throw new Error(error);
+
+				console.log(body);
+			});
+		} catch (err) {
+			console.error(err);
+		}
+
+		res.send(result.rows);
+	} catch (err) {
+		console.error(err);
+	} finally {
+		if (conn) {
+			await conn.close();
+		}
+	}
+});
