@@ -1,5 +1,6 @@
 const express = require("express");
 const oracledb = require("oracledb");
+const request = require("request");
 
 const config = {
 	user: "mhu04972",
@@ -100,19 +101,18 @@ app.get("/aderts", async (req, res) => {
 // approve advert
 app.post("/adverts/:advertId", jwtCheck, async (req, res) => {
 	let conn;
-	let cred;
 	try {
 		conn = await oracledb.getConnection(config);
 
 		const { advertId } = req.params;
 
-		cred = await conn.execute(
+		const result = await conn.execute(
 			"UPDATE ADVERTS SET CSI345_ADVERT = Approved WHERE ID = :advertId",
 			[advertId],
 			{ autoCommit: true }
 		);
 
-		res.json(cred);
+		res.send(result.rows);
 	} catch (err) {
 		console.error(err);
 	} finally {
@@ -144,6 +144,7 @@ app.get("/reports", jwtCheck, async (req, res) => {
 // login with Auth0
 app.post("/login", async (req, res) => {
 	let conn;
+	let cred;
 	var options = {
 		method: "POST",
 		url: "https://dev-yxcvikhgd4lanrwd.us.auth0.com/oauth/token",
@@ -164,14 +165,14 @@ app.post("/login", async (req, res) => {
 		try {
 			request(options, function (error, response, body) {
 				if (error) throw new Error(error);
-
+				cred = response;
 				console.log(body);
 			});
 		} catch (err) {
 			console.error(err);
 		}
 
-		res.send(result.rows);
+		res.json(cred);
 	} catch (err) {
 		console.error(err);
 	} finally {
