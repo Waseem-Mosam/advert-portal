@@ -11,9 +11,6 @@ const config = {
 const app = express();
 app.use(express.json());
 
-const PORT = 3000;
-app.listen(PORT, () => console.log("Listening on port " + PORT));
-
 const { auth, requiredScopes } = require("express-oauth2-jwt-bearer");
 
 // Authorization middleware. When used, the Access Token must
@@ -50,7 +47,91 @@ app.get("/api/private-scoped", jwtCheck, checkScopes, function (req, res) {
 	});
 });
 
-/* Staff Member endpoints */
+/**
+ * Staff endpoints
+ */
+
+// Retrieve advert by staff ID
+app.get("/staff/:staff_id/adverts", async (req, res) => {
+	let connection;
+
+	var staff_id = req.params.staff_id;
+
+	try {
+		connection = await oracledb.getConnection(dbConfig);
+		const data = await connection.execute(
+			`SELECT * 
+             FROM CSI345_ADVERT
+             WHERE SELLERID = :staff_id`,
+			[staff_id]
+		);
+		res.json(data.rows);
+	} catch (err) {
+		res.send(err);
+	}
+});
+
+// Retrieve all adverts
+app.get("/staff/adverts", async (req, res) => {
+	let connection;
+	try {
+		connection = await oracledb.getConnection(dbConfig);
+		const data = await connection.execute(
+			`SELECT * 
+             FROM CSI345_ADVERT
+             WHERE NOT STATUS = 'Deleted' AND NOT STATUS = 'Pending'`
+		);
+		res.json(data.rows);
+	} catch (err) {
+		res.send(err);
+	}
+});
+
+// Create Advert
+app.post("/adverts", async (req, res) => {
+	let connection;
+
+	const advert_id = Math.floor(100000 + Math.random() * 900000); // generate a random 6-digit number
+
+	try {
+		connection = await oracledb.getConnection(dbConfig);
+
+		const data = await connection.execute(
+			`INSERT INTO CSI345_ADVERT (ADVERTID, TITLE, DESCRIPTION, PRICE, SELLERID) 
+             VALUES (:1, :2, :3, :4, :5)`,
+			[
+				advert_id,
+				req.body.title,
+				req.body.desc,
+				req.body.price,
+				req.body.seller_id,
+			],
+			{ autoCommit: true }
+		);
+		res.send(201);
+	} catch (err) {
+		res.send(err);
+	}
+});
+
+// Adverts by AdvertID
+app.get("/advert/:advert_id", async (req, res) => {
+	let connection;
+	const advert_id = req.params.advert_id;
+
+	try {
+		connection = await oracledb.getConnection(dbConfig);
+		const data = await connection.execute(
+			`SELECT *
+             FROM CSI345_ADVERT
+             WHERE ADVERTID = :advert_id`,
+			[advert_id]
+		);
+		res.json(data.rows);
+	} catch (err) {
+		res.send(err);
+	}
+});
 
 // Update Advert
 app.put("/adverts/:id", async (req, res) => {
@@ -59,7 +140,7 @@ app.put("/adverts/:id", async (req, res) => {
 	try {
 		conn = await oracledb.getConnection(config);
 
-		const { id } = req.params;
+		const advert_id = req.params.advert_id;
 		const { title, description, price } = req.body;
 
 		const result = await conn.execute(
@@ -89,90 +170,6 @@ app.get("/aderts", async (req, res) => {
 		const result = await conn.execute("SELECT * FROM ADVERTS");
 
 		res.send(result.rows);
-	} catch (err) {
-		console.error(err);
-	} finally {
-		if (conn) {
-			await conn.close();
-		}
-	}
-});
-
-// approve advert
-app.post("/adverts/:advertId", jwtCheck, async (req, res) => {
-	let conn;
-	try {
-		conn = await oracledb.getConnection(config);
-
-		const { advertId } = req.params;
-
-		const result = await conn.execute(
-			"UPDATE ADVERTS SET CSI345_ADVERT = Approved WHERE ID = :advertId",
-			[advertId],
-			{ autoCommit: true }
-		);
-
-		res.send(result.rows);
-	} catch (err) {
-		console.error(err);
-	} finally {
-		if (conn) {
-			await conn.close();
-		}
-	}
-});
-
-// Get Reports
-app.get("/reports", jwtCheck, async (req, res) => {
-	let conn;
-	const { report_type } = req.query;
-	try {
-		conn = await oracledb.getConnection(config);
-
-		const result = await conn.execute("SELECT * FROM REPORTS");
-
-		res.send(result.rows);
-	} catch (err) {
-		console.error(err);
-	} finally {
-		if (conn) {
-			await conn.close();
-		}
-	}
-});
-
-// login with Auth0
-app.post("/login", async (req, res) => {
-	let conn;
-	let cred;
-	var options = {
-		method: "POST",
-		url: "https://dev-yxcvikhgd4lanrwd.us.auth0.com/oauth/token",
-		headers: { "content-type": "application/json" },
-		body: '{"client_id":"lB8QxNyb5zSLkbZTj9fGDvos16f9QQh4","client_secret":"hqvFHzG-HJn6Q_OI-mQE_oiWcAQnrwXPI-bBMY8qjLseN9oaj-lL50abxyb8ntrA","audience":"http://localhost:3000","grant_type":"client_credentials"}',
-	};
-
-	try {
-		conn = await oracledb.getConnection(config);
-
-		const { email, password } = req.body;
-
-		const result = await conn.execute(
-			"SELECT * FROM CSI345_USERS WHERE EMAIL = :email AND PASSWORD = :password",
-			[email, password]
-		);
-
-		try {
-			request(options, function (error, response, body) {
-				if (error) throw new Error(error);
-				cred = response;
-				console.log(body);
-			});
-		} catch (err) {
-			console.error(err);
-		}
-
-		res.json(cred);
 	} catch (err) {
 		console.error(err);
 	} finally {
