@@ -23,22 +23,6 @@ const jwtCheck = auth({
 	tokenSigningAlg: "HS256",
 });
 
-// This route doesn't need authentication
-app.get("/api/public", function (req, res) {
-	res.json({
-		message:
-			"Hello from a public endpoint! You don't need to be authenticated to see this.",
-	});
-});
-
-// This route needs authentication
-app.get("/api/private", jwtCheck, function (req, res) {
-	res.json({
-		message:
-			"Hello from a private endpoint! You need to be authenticated to see this.",
-	});
-});
-
 const checkScopes = requiredScopes("read:messages");
 
 app.get("/api/private-scoped", jwtCheck, checkScopes, function (req, res) {
