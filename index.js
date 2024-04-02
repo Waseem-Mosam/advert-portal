@@ -1,8 +1,9 @@
 const express = require("express");
 const oracledb = require("oracledb");
-const request = require("request");
 
-const config = {
+oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
+
+const dbConfig = {
 	user: "mhu04972",
 	password: "mhu04972",
 	connectString: "10.0.18.2:1521/orcl",
@@ -134,21 +135,24 @@ app.get("/advert/:advert_id", async (req, res) => {
 });
 
 // Update Advert
-app.put("/adverts/:id", async (req, res) => {
+app.put("/adverts/:advert_id", async (req, res) => {
 	let conn;
 
 	try {
-		conn = await oracledb.getConnection(config);
+		conn = await oracledb.getConnection(dbConfig);
 
 		const advert_id = req.params.advert_id;
 		const { title, description, price } = req.body;
 
 		const result = await conn.execute(
-			"UPDATE ADVERTS SET TITLE = :title, DESCRIPTION = :description, PRICE = :price WHERE ID = :id",
-			[title, description, price, id]
+			`UPDATE CSI345_ADVERT 
+             SET TITLE = :title, DESCRIPTION = :description, PRICE = :price 
+             WHERE ADVERTID = :advert_id`,
+			[title, description, price, advert_id],
+			{ autoCommit: true }
 		);
 
-		res.send(result.rows);
+		res.sendStatus(201);
 	} catch (err) {
 		console.error(err);
 	} finally {
@@ -158,16 +162,37 @@ app.put("/adverts/:id", async (req, res) => {
 	}
 });
 
-/* Administrator endpoints */
+// Delete Advert
+app.put("/advert/:advert_id", async (req, res) => {
+	const advert_id = req.params.advert_id;
+
+	try {
+		connection = await oracledb.getConnection(dbConfig);
+		const data = await connection.execute(
+			`UPDATE CSI345_ADVERT  
+                SET STATUS = 'Deleted'
+                WHERE ADVERTID = :advert_id`,
+			[advert_id],
+			{ autoCommit: true }
+		);
+		res.json({ message: "Deleted" });
+	} catch (err) {
+		res.send(err);
+	}
+});
+
+/**
+ * Admin endpoints
+ */
 
 // Get Adverts
-app.get("/aderts", async (req, res) => {
+app.get("/adverts", async (req, res) => {
 	let conn;
 
 	try {
-		conn = await oracledb.getConnection(config);
+		conn = await oracledb.getConnection(dbConfig);
 
-		const result = await conn.execute("SELECT * FROM ADVERTS");
+		const result = await conn.execute("SELECT * FROM CSI345_ADVERT");
 
 		res.send(result.rows);
 	} catch (err) {
@@ -178,3 +203,101 @@ app.get("/aderts", async (req, res) => {
 		}
 	}
 });
+
+// approve advert
+app.post("/adverts/:advertId", async (req, res) => {
+	let conn;
+	let cred;
+	try {
+		conn = await oracledb.getConnection(dbConfig);
+
+		const { advertId } = req.params;
+
+		cred = await conn.execute(
+			"UPDATE CSI345_ADVERT SET STATUS = 'Approved' WHERE ADVERTID = :advertId",
+			[advertId],
+			{ autoCommit: true }
+		);
+
+		res.json(cred);
+	} catch (err) {
+		console.error(err);
+	} finally {
+		if (conn) {
+			await conn.close();
+		}
+	}
+});
+
+// Get Reports
+app.get("/reports", async (req, res) => {
+	let conn;
+	const { report_type } = req.query;
+	try {
+		conn = await oracledb.getConnection(dbConfig);
+		let result;
+		if (report_type == "sold") {
+			result = await conn.execute(
+				"SELECT * FROM CSI345_ADVERT WHERE TAG = 'Sold'"
+			);
+		} else if (report_type == "available") {
+			result = await conn.execute(
+				"SELECT * FROM CSI345_ADVERT WHERE TAG = 'Available'"
+			);
+		}
+
+		res.send(result.rows);
+	} catch (err) {
+		console.error(err);
+	} finally {
+		if (conn) {
+			await conn.close();
+		}
+	}
+});
+
+// login with Auth0
+app.post("/login", async (req, res) => {
+	let conn;
+	let cred;
+	var options = {
+		method: "POST",
+		url: "https://dev-yxcvikhgd4lanrwd.us.auth0.com/oauth/token",
+		headers: { "content-type": "application/json" },
+		body: '{"client_id":"lB8QxNyb5zSLkbZTj9fGDvos16f9QQh4","client_secret":"hqvFHzG-HJn6Q_OI-mQE_oiWcAQnrwXPI-bBMY8qjLseN9oaj-lL50abxyb8ntrA","audience":"http://localhost:3000","grant_type":"client_credentials"}',
+	};
+
+	try {
+		conn = await oracledb.getConnection(dbConfig);
+
+		const { email, password } = req.body;
+
+		const result = await conn.execute(
+			"SELECT * FROM CSI345_USER WHERE EMAIL = :email AND PASSWORD = :password",
+			[email, password]
+		);
+
+		if (await result.rows[0]) {
+			try {
+				request(options, function (error, response, body) {
+					if (error) throw new Error(error);
+					const creds = JSON.parse(body);
+					res.json({ access_token: creds.access_token });
+				});
+			} catch (err) {
+				console.error(err);
+			}
+		} else {
+			res.status(401).json({ status: 401, message: "User does not exist." });
+		}
+	} catch (err) {
+		console.error(err);
+	} finally {
+		if (conn) {
+			await conn.close();
+		}
+	}
+});
+
+const PORT = 3000;
+app.listen(PORT, () => console.log("Listening on port " + PORT));
