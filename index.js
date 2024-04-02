@@ -1,5 +1,6 @@
 const express = require("express");
 const oracledb = require("oracledb");
+const { Meilisearch } = require("meilisearch");
 
 oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
 
@@ -8,9 +9,17 @@ const dbConfig = {
 	password: "mhu04972",
 	connectString: "10.0.18.2:1521/orcl",
 };
+var bodyParser = require("body-parser");
+// create a new instance of the MsSearchService class
+const client = new Meilisearch({
+	host: "https://meilisearch-on-koyeb-meap.koyeb.app/",
+	apiKey: "TEST_KEY",
+});
 
 const app = express();
 app.use(express.json());
+
+app.use(bodyParser.json());
 
 const { auth, requiredScopes } = require("express-oauth2-jwt-bearer");
 
@@ -81,6 +90,7 @@ app.post("/adverts", async (req, res) => {
 	try {
 		connection = await oracledb.getConnection(dbConfig);
 
+		// create advert in database
 		const data = await connection.execute(
 			`INSERT INTO CSI345_ADVERT (ADVERTID, TITLE, DESCRIPTION, PRICE, SELLERID) 
              VALUES (:1, :2, :3, :4, :5)`,
@@ -93,6 +103,24 @@ app.post("/adverts", async (req, res) => {
 			],
 			{ autoCommit: true }
 		);
+
+		// add advert to search index
+		try {
+			client.index("adverts").addDocuments([
+				{
+					// the advert_id is the primary key. Required by Meilisearch.
+					primaryKey: advert_id,
+					title: req.body.title,
+					description: req.body.desc,
+					price: req.body.price,
+					seller_id: req.body.seller_id,
+				},
+			]);
+		} catch (e) {
+			console.log(e);
+			res.send(400);
+		}
+
 		res.send(201);
 	} catch (err) {
 		res.send(err);
@@ -115,6 +143,25 @@ app.get("/advert/:advert_id", async (req, res) => {
 		res.json(data.rows);
 	} catch (err) {
 		res.send(err);
+	}
+});
+
+// Text search for adverts
+app.get("/adverts/search", async (req, res) => {
+	// get search query
+	const query = req.body.query;
+
+	// add advert to search index
+	try {
+		await client
+			.index("adverts")
+			.search(query)
+			.then((result) => {
+				res.json(result.hits);
+			});
+	} catch (e) {
+		console.log(e);
+		res.send(400);
 	}
 });
 
