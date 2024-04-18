@@ -147,9 +147,9 @@ app.get("/advert/:advert_id", async (req, res) => {
 });
 
 // Text search for adverts
-app.get("/adverts/search", async (req, res) => {
+app.get("/adverts/search",async (req, res) => {
 	// get search query
-	const query = req.body.query;
+	const query = req.query.query;
 
 	// add advert to search index
 	try {
@@ -157,7 +157,7 @@ app.get("/adverts/search", async (req, res) => {
 			.index("adverts")
 			.search(query)
 			.then((result) => {
-				res.json(result.hits);
+				res.json(result);
 			});
 	} catch (e) {
 		console.log(e);
