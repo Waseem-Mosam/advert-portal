@@ -270,10 +270,11 @@ app.post("/adverts/:advertId", async (req, res) => {
 		conn = await oracledb.getConnection(dbConfig);
 
 		const { advertId } = req.params;
+		const adminid = "123456788"
 
 		cred = await conn.execute(
-			"UPDATE CSI345_ADVERT SET STATUS = 'Approved' WHERE ADVERTID = :advertId",
-			[advertId],
+			"UPDATE CSI345_ADVERT SET STATUS = 'Approved', ADMINID = :adminid WHERE ADVERTID = :advertId",
+			[adminid, advertId],
 			{ autoCommit: true }
 		);
 
