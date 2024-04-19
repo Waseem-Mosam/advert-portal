@@ -1,6 +1,10 @@
 const express = require("express");
 const oracledb = require("oracledb");
 const { Meilisearch } = require("meilisearch");
+const notificationapi = require("notificationapi-node-server-sdk").default;
+const request = require("request");
+
+
 
 oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
 
@@ -20,6 +24,29 @@ const app = express();
 app.use(express.json());
 
 app.use(bodyParser.json());
+
+
+app.get('/send-notification', (req, res) => {
+
+	notificationapi.init(
+		'59uh8hqb4k73g68c5i1rjfh0lp', // clientId
+		'8ohqe8rl4rm6hqcb4828d0b5eb6m2rum28569pd4ln72ma095dl'// clientSecret
+	)
+	notificationapi.send({
+		notificationId: 'new_comment',
+		user: {
+		  id: "waseem.mosam1@gmail.com",
+		  email: "waseem.mosam1@gmail.com",
+		  number: "72304776" // Replace with your phone number
+		},
+		mergeTags: {
+		  "comment": "Build something great :)",
+		  "commentId": "commentId-1234-abcd-wxyz"
+		}
+	})
+	res.sendStatus(200);
+});
+  
 
 const { auth, requiredScopes } = require("express-oauth2-jwt-bearer");
 
@@ -250,6 +277,26 @@ app.post("/adverts/:advertId", async (req, res) => {
 			{ autoCommit: true }
 		);
 
+		const title = await conn.execute("SELECT title FROM CSI345_ADVERT WHERE ADVERTID = :advertId", [advertId]);
+		console.log(title.rows[0].TITLE)
+		const seller = await conn.execute("SELECT email FROM CSI345_USER WHERE USERID = (SELECT SELLERID FROM CSI345_ADVERT WHERE ADVERTID = :advertId)", [advertId]);
+		notificationapi.init(
+			'59uh8hqb4k73g68c5i1rjfh0lp', // clientId
+			'8ohqe8rl4rm6hqcb4828d0b5eb6m2rum28569pd4ln72ma095dl'// clientSecret
+		)
+		notificationapi.send({
+			notificationId: 'new_comment',
+			user: {
+			  id: seller.rows[0].EMAIL,
+			  email: seller.rows[0].EMAIL,
+			  number: "72304776" // Replace with your phone number
+			},
+			mergeTags: {
+			  "comment": `Your advert "${title.rows[0].TITLE}" has been approved. Congratulations!`,
+			  "commentId": "commentId-1234-abcd-wxyz"
+			}
+		})
+		console.log(seller.rows[0].EMAIL);
 		res.json(cred);
 	} catch (err) {
 		console.error(err);
