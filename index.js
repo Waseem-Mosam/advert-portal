@@ -3,10 +3,26 @@ const oracledb = require("oracledb");
 const { Meilisearch } = require("meilisearch");
 const notificationapi = require("notificationapi-node-server-sdk").default;
 const request = require("request");
-
-
+const axios = require("axios");
 
 oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
+
+async function requestAccessToken(clientId, clientSecret, authUrl, audience) {
+	const url = authUrl;
+	const payload = {
+		grant_type: "client_credentials",
+		client_id: clientId,
+		client_secret: clientSecret,
+		audience: audience,
+	};
+	try {
+		const response = await axios.post(url, payload);
+		return response.data.access_token;
+	} catch (error) {
+		console.error("Failed to get access token", error);
+		throw error;
+	}
+}
 
 const dbConfig = {
 	user: "mhu04972",
@@ -25,48 +41,48 @@ app.use(express.json());
 
 app.use(bodyParser.json());
 
-
-app.get('/send-notification', (req, res) => {
-
+app.get("/send-notification", (req, res) => {
 	notificationapi.init(
-		'59uh8hqb4k73g68c5i1rjfh0lp', // clientId
-		'8ohqe8rl4rm6hqcb4828d0b5eb6m2rum28569pd4ln72ma095dl'// clientSecret
-	)
+		"59uh8hqb4k73g68c5i1rjfh0lp", // clientId
+		"8ohqe8rl4rm6hqcb4828d0b5eb6m2rum28569pd4ln72ma095dl" // clientSecret
+	);
 	notificationapi.send({
-		notificationId: 'new_comment',
+		notificationId: "new_comment",
 		user: {
-		  id: "waseem.mosam1@gmail.com",
-		  email: "waseem.mosam1@gmail.com",
-		  number: "72304776" // Replace with your phone number
+			id: "waseem.mosam1@gmail.com",
+			email: "waseem.mosam1@gmail.com",
+			number: "72304776", // Replace with your phone number
 		},
 		mergeTags: {
-		  "comment": "Build something great :)",
-		  "commentId": "commentId-1234-abcd-wxyz"
-		}
-	})
+			comment: "Build something great :)",
+			commentId: "commentId-1234-abcd-wxyz",
+		},
+	});
 	res.sendStatus(200);
 });
-  
 
 const { auth, requiredScopes } = require("express-oauth2-jwt-bearer");
 
 // Authorization middleware. When used, the Access Token must
 // exist and be verified against the Auth0 JSON Web Key Set.
-const jwtCheck = auth({
+const adminJwtCheck = auth({
 	secret: "nZ29VCk0IE14IWfw1E7mIGOlhRPIcCer",
 	audience: "http://localhost:3000",
 	issuerBaseURL: "https://dev-yxcvikhgd4lanrwd.us.auth0.com/",
 	tokenSigningAlg: "HS256",
 });
 
-const checkScopes = requiredScopes("read:messages");
-
-app.get("/api/private-scoped", jwtCheck, checkScopes, function (req, res) {
-	res.json({
-		message:
-			"Hello from a private endpoint! You need to be authenticated and have a scope of read:messages to see this.",
-	});
+const staffJwtCheck = auth({
+	audience: "Staff",
+	issuerBaseURL: `https://dev-yxcvikhgd4lanrwd.us.auth0.com/`,
 });
+
+// app.get("/api/private-scoped", adminJwtCheck, checkScopes, function (req, res) {
+// 	res.json({
+// 		message:
+// 			"Hello from a private endpoint! You need to be authenticated and have a scope of read:messages to see this.",
+// 	});
+// });
 
 /**
  * Staff endpoints
@@ -174,7 +190,7 @@ app.get("/advert/:advert_id", async (req, res) => {
 });
 
 // Text search for adverts
-app.get("/adverts/search",async (req, res) => {
+app.get("/adverts/search", async (req, res) => {
 	// get search query
 	const query = req.query.query;
 
@@ -228,8 +244,8 @@ app.put("/advert/:advert_id", async (req, res) => {
 		connection = await oracledb.getConnection(dbConfig);
 		const data = await connection.execute(
 			`UPDATE CSI345_ADVERT  
-                SET STATUS = 'Deleted'
-                WHERE ADVERTID = :advert_id`,
+             SET STATUS = 'Deleted'
+             WHERE ADVERTID = :advert_id`,
 			[advert_id],
 			{ autoCommit: true }
 		);
@@ -263,40 +279,48 @@ app.get("/adverts", async (req, res) => {
 });
 
 // approve advert
-app.post("/adverts/:advertId", async (req, res) => {
+app.post("/adverts/:advertId", adminJwtCheck, async (req, res) => {
 	let conn;
 	let cred;
 	try {
 		conn = await oracledb.getConnection(dbConfig);
 
 		const { advertId } = req.params;
-		const adminid = "123456788"
+		const adminid = "123456788";
 
 		cred = await conn.execute(
-			"UPDATE CSI345_ADVERT SET STATUS = 'Approved', ADMINID = :adminid WHERE ADVERTID = :advertId",
+			`UPDATE CSI345_ADVERT 
+			 SET STATUS = 'Approved', ADMINID = :adminid 
+			 WHERE ADVERTID = :advertId`,
 			[adminid, advertId],
 			{ autoCommit: true }
 		);
 
-		const title = await conn.execute("SELECT title FROM CSI345_ADVERT WHERE ADVERTID = :advertId", [advertId]);
-		console.log(title.rows[0].TITLE)
-		const seller = await conn.execute("SELECT email FROM CSI345_USER WHERE USERID = (SELECT SELLERID FROM CSI345_ADVERT WHERE ADVERTID = :advertId)", [advertId]);
+		const title = await conn.execute(
+			"SELECT title FROM CSI345_ADVERT WHERE ADVERTID = :advertId",
+			[advertId]
+		);
+		console.log(title.rows[0].TITLE);
+		const seller = await conn.execute(
+			"SELECT email FROM CSI345_USER WHERE USERID = (SELECT SELLERID FROM CSI345_ADVERT WHERE ADVERTID = :advertId)",
+			[advertId]
+		);
 		notificationapi.init(
-			'59uh8hqb4k73g68c5i1rjfh0lp', // clientId
-			'8ohqe8rl4rm6hqcb4828d0b5eb6m2rum28569pd4ln72ma095dl'// clientSecret
-		)
+			"59uh8hqb4k73g68c5i1rjfh0lp", // clientId
+			"8ohqe8rl4rm6hqcb4828d0b5eb6m2rum28569pd4ln72ma095dl" // clientSecret
+		);
 		notificationapi.send({
-			notificationId: 'new_comment',
+			notificationId: "new_comment",
 			user: {
-			  id: seller.rows[0].EMAIL,
-			  email: seller.rows[0].EMAIL,
-			  number: "72304776" // Replace with your phone number
+				id: seller.rows[0].EMAIL,
+				email: seller.rows[0].EMAIL,
+				number: "72304776", // Replace with your phone number
 			},
 			mergeTags: {
-			  "comment": `Your advert "${title.rows[0].TITLE}" has been approved. Congratulations!`,
-			  "commentId": "commentId-1234-abcd-wxyz"
-			}
-		})
+				comment: `Your advert "${title.rows[0].TITLE}" has been approved. Congratulations!`,
+				commentId: "commentId-1234-abcd-wxyz",
+			},
+		});
 		console.log(seller.rows[0].EMAIL);
 		res.json(cred);
 	} catch (err) {
@@ -317,14 +341,17 @@ app.get("/reports", async (req, res) => {
 		let result;
 		if (report_type == "sold") {
 			result = await conn.execute(
-				"SELECT * FROM CSI345_ADVERT WHERE TAG = 'Sold'"
+				`SELECT * 
+				 FROM CSI345_ADVERT 
+				 WHERE TAG = 'Sold'`
 			);
 		} else if (report_type == "available") {
 			result = await conn.execute(
-				"SELECT * FROM CSI345_ADVERT WHERE TAG = 'Available'"
+				`SELECT * 
+				 FROM CSI345_ADVERT 
+				 WHERE TAG = 'Available'`
 			);
 		}
-
 		res.send(result.rows);
 	} catch (err) {
 		console.error(err);
@@ -337,32 +364,37 @@ app.get("/reports", async (req, res) => {
 
 // login with Auth0
 app.post("/login", async (req, res) => {
-	let conn;
-	let cred;
-	var options = {
-		method: "POST",
-		url: "https://dev-yxcvikhgd4lanrwd.us.auth0.com/oauth/token",
-		headers: { "content-type": "application/json" },
-		body: '{"client_id":"lB8QxNyb5zSLkbZTj9fGDvos16f9QQh4","client_secret":"hqvFHzG-HJn6Q_OI-mQE_oiWcAQnrwXPI-bBMY8qjLseN9oaj-lL50abxyb8ntrA","audience":"http://localhost:3000","grant_type":"client_credentials"}',
-	};
-
 	try {
 		conn = await oracledb.getConnection(dbConfig);
 
 		const { email, password } = req.body;
 
 		const result = await conn.execute(
-			"SELECT * FROM CSI345_USER WHERE EMAIL = :email AND PASSWORD = :password",
+			`SELECT * 
+			 FROM CSI345_USER 
+			 WHERE EMAIL = :email AND PASSWORD = :password`,
 			[email, password]
 		);
-
+		console.log(result);
 		if (await result.rows[0]) {
 			try {
-				request(options, function (error, response, body) {
-					if (error) throw new Error(error);
-					const creds = JSON.parse(body);
-					res.json({ access_token: creds.access_token });
-				});
+				let accessToken;
+				if ((await result.rows[0].TYPE) === "admin") {
+					accessToken = await requestAccessToken(
+						"lB8QxNyb5zSLkbZTj9fGDvos16f9QQh4",
+						"hqvFHzG-HJn6Q_OI-mQE_oiWcAQnrwXPI-bBMY8qjLseN9oaj-lL50abxyb8ntrA",
+						`https://dev-yxcvikhgd4lanrwd.us.auth0.com/oauth/token`,
+						"http://localhost:3000"
+					);
+				} else {
+					accessToken = await requestAccessToken(
+						"puc93troSxZpp6VIX6MbDenHv1PLM3dv",
+						"ywEvwUnpnSoSGk7QrkjHhIQ-9QTzVefBrGtvP1Fi3mxGyJvKD5EcnHa_pdfaBjkU",
+						`https://dev-yxcvikhgd4lanrwd.us.auth0.com/oauth/token`,
+						"http://localhost.com"
+					);
+				}
+				res.json(accessToken);
 			} catch (err) {
 				console.error(err);
 			}
